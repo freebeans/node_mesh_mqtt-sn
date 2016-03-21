@@ -37,15 +37,15 @@ int main(void)
     
     
 
-    /* Usuário escolhe Shell/UDP */ {	
+		/* Usuário escolhe Shell/UDP */ {	
 		printf("Aguardando usuário... ");
-		/* inicializa GPIO do botão */
-		gpio_init(BUTTON_GPIO, GPIO_DIR_IN, GPIO_PULLUP);
+		/* inicializa GPIO do botão como entrada com PULL-UP */
+		gpio_init(BUTTON_GPIO, GPIO_IN_PU);
 
 		/* acende o LED e espera por 3s */
-		LED_ON;
+		LED0_ON;
 		xtimer_usleep(1000000);
-		LED_OFF;
+		LED0_OFF;
 		
 		/* se o usuario pressionar o botão, o programa cai no shell */
 		if(!gpio_read(BUTTON_GPIO)){
@@ -56,9 +56,9 @@ int main(void)
 		
 		/* se o usuario não apertar o botão, começa a cuspir pacotes */
 		xtimer_usleep(1000000);
-		LED_ON;
+		LED0_ON;
 		xtimer_usleep(500000);
-		LED_OFF;
+		LED0_OFF;
 		
 		
 		puts(" enviando pacotes.");
@@ -69,7 +69,7 @@ int main(void)
     ipv6_addr_from_str(&destino_endereco, MQTT_HOST);
 
     while(1){
-		LED_TOGGLE;
+		LED0_TOGGLE;
 		
 		mqtt_send(destino_endereco, MQTT_TOPIC_PUB, (unsigned char *) MQTT_FIXED_MSG);
 		
@@ -98,6 +98,16 @@ kernel_pid_t interface_detecta(void){
 }
 
 void interface_configura(kernel_pid_t interface){
+
+{	/* ifconfig [WIRELESS] set channel WIRELESS_CHANNEL */
+		unsigned int res = WIRELESS_CHANNEL;
+		gnrc_netapi_set(interface, NETOPT_CHANNEL, 0, (uint16_t *)&res, sizeof(uint16_t));
+	}
+	
+	{	/* ifconfig [WIRELESS] set pan_id PANID */
+		unsigned int res = PANID;
+		gnrc_netapi_set(interface, NETOPT_NID, 0, (uint16_t *)&res, sizeof(uint16_t));
+	}
 
 	{	/* rpl init [WIRELESS] */
 		puts("Iniciando RPL na interface sem fio");
